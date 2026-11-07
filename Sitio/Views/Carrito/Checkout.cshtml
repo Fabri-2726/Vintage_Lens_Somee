@@ -1,0 +1,92 @@
+@{ ViewData["Title"] = "Checkout"; }
+<div class="container mt-5 min-vh-100">
+    <h2 class="fw-bold mb-4 text-center" style="color: var(--dark-desaturated);">Método de Pago</h2>
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card border-0 shadow-sm p-4">
+                <h4 class="mb-4">Total a pagar: <strong style="color: var(--accent-gold);">$@ViewBag.Total.ToString("N2") MXN</strong></h4>
+                <form asp-action="ProcesarPago" method="post">
+                    <div class="mb-3">
+                        <label class="fw-bold text-muted mb-3">Selecciona tu método:</label>
+                        
+                        <div class="form-check mb-2">
+                            <input class="form-check-input" type="radio" name="metodoPago" value="Tarjeta Crédito/Débito" id="pagoTarjeta" checked onchange="toggleMetodoPago()">
+                            <label class="form-check-label"><i class="fas fa-credit-card me-2"></i> Tarjeta de Crédito / Débito</label>
+                        </div>
+                        <div class="form-check mb-2">
+                            <input class="form-check-input" type="radio" name="metodoPago" value="Transferencia SPEI" id="pagoSpei" onchange="toggleMetodoPago()">
+                            <label class="form-check-label"><i class="fas fa-mobile-alt me-2"></i> Transferencia Interbancaria (SPEI)</label>
+                        </div>
+                        <div class="form-check mb-4">
+                            <input class="form-check-input" type="radio" name="metodoPago" value="Depósito en Efectivo" id="pagoOxxo" onchange="toggleMetodoPago()">
+                            <label class="form-check-label"><i class="fas fa-money-bill-wave me-2"></i> Depósito en Efectivo (OXXO/Ventanilla)</label>
+                        </div>
+
+                        <!-- Campos dinámicos -->
+                        <!-- Panel de Tarjeta Actualizado -->
+                        <div id="panelTarjeta" class="p-4 bg-light mb-4 shadow-sm" style="border-radius: 8px; border: 1px solid #e0e0e0;">
+                            <h6 class="fw-bold mb-3 text-muted">Datos de Facturación y Tarjeta</h6>
+                            <div class="mb-3">
+                                <input type="text" name="nombreTitular" id="nombreTitular" class="form-control rounded-0" placeholder="Nombre completo del titular" required>
+                            </div>
+                            <div class="mb-3">
+                                <input type="text" name="direccion" class="form-control rounded-0" placeholder="Dirección completa (ej. Tuxtla Gutiérrez, Chiapas)" required>
+                            </div>
+                            <div class="mb-3">
+                                <input type="text" name="numeroTarjeta" class="form-control rounded-0" placeholder="Número de Tarjeta (16 dígitos sin espacios)" maxlength="16" required>
+                            </div>
+                            <div class="row">
+                            <input type="text" id="vencimientoInput" name="vencimiento" class="form-control rounded-0" placeholder="Vencimiento (MM/AA)" maxlength="5" required autocomplete="off" />
+                                <div class="col-6">
+                                    <input type="password" class="form-control rounded-0" placeholder="CVV" maxlength="3" required>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div id="panelSpei" class="p-3 bg-light mb-4 text-muted small" style="display: none; border-radius: 8px;">
+                            <i class="fas fa-info-circle text-primary"></i> Al procesar, se generará una CLABE interbancaria única para tu orden.
+                        </div>
+
+                        <div id="panelOxxo" class="p-3 bg-light mb-4 text-muted small" style="display: none; border-radius: 8px;">
+                            <i class="fas fa-info-circle text-success"></i> Al procesar, obtendrás un código de barras para pagar en caja.
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-vintage btn-lg w-100 rounded-0 fw-bold">PAGAR AHORA</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.getElementById('vencimientoInput')?.addEventListener('input', function (e) {
+        let value = e.target.value.replace(/\D/g, ''); // Elimina cualquier carácter que no sea número
+        
+        if (value.length > 4) value = value.substring(0, 4);
+        
+        if (value.length >= 3) {
+            e.target.value = value.substring(0, 2) + '/' + value.substring(2);
+        } else {
+            e.target.value = value;
+        }
+    });
+
+    // Permitir borrar fácilmente con Backspace
+    document.getElementById('vencimientoInput')?.addEventListener('keydown', function (e) {
+        if (e.key === 'Backspace' && this.value.length === 3 && this.value.endsWith('/')) {
+            this.value = this.value.substring(0, 2);
+        }
+    });
+</script>
+
+<script>
+    function toggleMetodoPago() {
+        let isTarjeta = document.getElementById('pagoTarjeta').checked;
+        document.getElementById('panelTarjeta').style.display = isTarjeta ? 'block' : 'none';
+        document.getElementById('panelSpei').style.display = document.getElementById('pagoSpei').checked ? 'block' : 'none';
+        document.getElementById('panelOxxo').style.display = document.getElementById('pagoOxxo').checked ? 'block' : 'none';
+        
+        // Quitar obligatoriedad si no es tarjeta
+        document.querySelectorAll('#panelTarjeta input').forEach(input => input.required = isTarjeta);
+    }
+</script>

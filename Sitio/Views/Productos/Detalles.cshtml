@@ -1,0 +1,88 @@
+@model ECommerceFotografia.Models.Producto
+@{
+    ViewData["Title"] = Model.Nombre;
+}
+
+<div class="container mt-5 mb-5 min-vh-100">
+    <div class="mb-4">
+        <a asp-action="Catalogo" class="text-decoration-none text-muted small fw-bold">
+            <i class="fas fa-arrow-left me-1"></i> VOLVER AL CATÁLOGO
+        </a>
+    </div>
+
+    <div class="row">
+        <!-- Columna de la Imagen -->
+        <div class="col-md-6 mb-4">
+            <!-- Se agregó position-relative para poder flotar el botón del corazón -->
+            <div class="card border-0 shadow-sm p-4 text-center h-100 position-relative" style="background-color: white; border-radius: 8px;">
+                
+                <!-- BOTÓN DE FAVORITOS -->
+                <button onclick="toggleFavDetail(this, @Model.Id)" class="position-absolute" style="top: 25px; right: 25px; z-index: 10; background: white; border-radius: 50%; padding: 10px 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); border: none; transition: transform 0.2s;">
+                    <i class="far fa-heart fs-4 text-muted"></i>
+                </button>
+
+                <!-- Renderizado dinámico de la imagen -->
+                <div class="d-flex align-items-center justify-content-center p-3" style="height: 450px; border: 1px solid #e0e0e0; border-radius: 8px; background-color: white;">
+                    <img src="@Model.ImagenUrl" alt="@Model.Nombre" style="max-height: 100%; max-width: 100%; object-fit: contain;" />
+                </div>
+            </div>
+        </div>
+
+        <!-- Columna de Información del Producto -->
+        <div class="col-md-6">
+            <h2 class="fw-bold display-5 mb-2" style="color: var(--dark-desaturated);">@Model.Nombre</h2>
+            <h5 class="text-muted mb-4" style="letter-spacing: 1px;">@Model.Categoria?.Nombre</h5>
+            
+            <h3 class="fw-bold mb-4" style="color: var(--accent-gold);">
+                $@Model.Precio.ToString("N2") MXN
+            </h3>
+            
+            <div class="mb-4 p-4 bg-white shadow-sm" style="border-radius: 8px; border-left: 4px solid var(--warm-gray);">
+                <h5 class="fw-bold" style="color: var(--dark-desaturated);">Descripción del equipo:</h5>
+                <p class="text-muted mb-0" style="line-height: 1.8;">
+                    @Model.Descripcion
+                </p>
+            </div>
+
+            <div class="mb-4">
+                <span class="badge bg-secondary rounded-0 p-2 fs-6">Disponibilidad: @Model.Stock unidades en almacén</span>
+            </div>
+
+            <!-- Formulario para agregar al carrito -->
+            <form asp-controller="Carrito" asp-action="Agregar" method="post" class="mt-4">
+                <input type="hidden" name="productoId" value="@Model.Id" />
+                <div class="row g-3 align-items-center mb-4">
+                    <div class="col-auto">
+                        <label class="col-form-label text-muted fw-bold">Cantidad:</label>
+                    </div>
+                    <div class="col-auto">
+                        <input type="number" name="cantidad" class="form-control rounded-0 text-center" value="1" min="1" max="@Model.Stock" style="width: 100px;" />
+                    </div>
+                </div>
+                <button type="button" onclick="agregarAlCarritoAnimado(event, @Model.Id, 'img-producto-detalles')" class="btn btn-dark btn-lg rounded-0 px-5 fw-bold py-3 shadow">
+                    <i class="fas fa-cart-plus me-2 text-warning"></i> AGREGAR AL CARRITO
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Script para manejar el botón de favoritos en esta vista -->
+<script>
+    function toggleFavDetail(btn, id) {
+        event.preventDefault(); 
+        
+        fetch(`/Favoritos/ToggleFavorito?productoId=${id}`, { method: 'POST' })
+        .then(res => res.json())
+        .then(data => {
+            let icon = btn.querySelector('i');
+            if(data.status === 'added') {
+                icon.classList.remove('far', 'text-muted');
+                icon.classList.add('fas', 'text-danger');
+            } else {
+                icon.classList.remove('fas', 'text-danger');
+                icon.classList.add('far', 'text-muted');
+            }
+        });
+    }
+</script>

@@ -1,0 +1,65 @@
+@model IEnumerable<ECommerceFotografia.Models.Favorito>
+@{
+    ViewData["Title"] = "Mis Favoritos";
+}
+
+<div class="pt-2 mb-4">
+    <h1 class="fw-bold"><i class="fas fa-heart text-danger me-2"></i>Mis Favoritos</h1>
+</div>
+
+@if (Model == null || !Model.Any())
+{
+    <div class="alert alert-info rounded-0 border-0 shadow-sm">
+        No tienes productos agregados a tus favoritos aún. <a asp-controller="Productos" asp-action="Catalogo" class="fw-bold text-dark">Explorar catálogo</a>
+    </div>
+}
+else
+{
+    <div class="row row-cols-1 row-cols-sm-2 row-cols-md-4 g-4">
+        @foreach (var item in Model)
+        {
+            <div class="col">
+                <div class="card h-100 border-0 shadow-sm position-relative" style="background-color: white; border-radius: 8px; overflow: hidden; transition: transform 0.2s;">
+                    
+                    <!-- Botón para Quitar de Favoritos -->
+                    <button type="button" onclick="eliminarFav(event, this, @item.ProductoId)" class="position-absolute" style="top: 12px; right: 12px; z-index: 20; background: white; border-radius: 50%; padding: 6px 9px; border: none; box-shadow: 0 2px 5px rgba(0,0,0,0.15);" title="Quitar de favoritos">
+                        <i class="fas fa-heart text-danger fs-5"></i>
+                    </button>
+
+                    <!-- Enlace a Detalles del Producto -->
+                    <a asp-controller="Productos" asp-action="Detalles" asp-route-id="@item.ProductoId" class="text-decoration-none text-dark d-flex flex-column h-100">
+                        <div class="p-3 text-center bg-white">
+                            <img id="img-fav-@item.ProductoId" src="@item.Producto.ImagenUrl" alt="@item.Producto.Nombre" class="img-fluid" style="height: 200px; object-fit: contain;" />
+                        </div>
+                        
+                        <div class="card-body text-center border-top d-flex flex-column pt-3">
+                            <h6 class="fw-bold mb-1" style="color: var(--dark-desaturated);">@item.Producto.Nombre</h6>
+                            <span class="fs-6 fw-bold mb-3" style="color: var(--accent-gold);">$@item.Producto.Precio.ToString("N2") MXN</span>
+
+                            <!-- Botón de Agregar al Carrito con Animación sin Redirección -->
+                            <button type="button" onclick="agregarAlCarritoAnimado(event, @item.ProductoId, 'img-fav-@item.ProductoId')" class="btn btn-outline-dark rounded-0 mt-auto fw-bold btn-sm py-2" style="position: relative; z-index: 20;">
+                                <i class="fas fa-cart-plus me-1"></i> AL CARRITO
+                            </button>
+                        </div>
+                    </a>
+                </div>
+            </div>
+        }
+    </div>
+}
+
+<script>
+    function eliminarFav(event, btn, productoId) {
+        event.preventDefault();
+        event.stopPropagation();
+
+        fetch(`/Favoritos/ToggleFavorito?productoId=${productoId}`, { method: 'POST' })
+        .then(res => res.json())
+        .then(data => {
+            let col = btn.closest('.col');
+            if (col) {
+                col.remove();
+            }
+        });
+    }
+</script>

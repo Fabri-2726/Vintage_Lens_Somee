@@ -1,0 +1,77 @@
+@{ ViewData["Title"] = "Acceso"; }
+<div class="row justify-content-center mt-5 mb-5 min-vh-100">
+    <div class="col-md-5">
+        <div class="card shadow-sm border-0 p-0" style="border-radius: 8px; overflow: hidden;">
+            <ul class="nav nav-tabs nav-fill bg-light" id="authTabs" role="tablist">
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link active fw-bold text-dark rounded-0" data-bs-toggle="tab" data-bs-target="#login">INICIAR SESIÓN</button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link fw-bold text-dark rounded-0" data-bs-toggle="tab" data-bs-target="#registro">CREAR CUENTA</button>
+                </li>
+            </ul>
+            <div class="tab-content p-4 bg-white">
+                <!-- Tab Login -->
+                <div class="tab-pane fade show active" id="login">
+                    @if(ViewBag.Error != null) { <div class="alert alert-danger small">@ViewBag.Error</div> }
+                    @if(ViewBag.ExitoRegistro != null) { <div class="alert alert-success small">@ViewBag.ExitoRegistro</div> }
+                    <form asp-action="Login" method="post">
+                        <div class="mb-3">
+                            <label class="form-label text-muted small">Correo Electrónico</label>
+                            <input type="email" name="email" class="form-control rounded-0" required />
+                        </div>
+                        <div class="mb-4">
+                            <label class="form-label text-muted small">Contraseña</label>
+                            <input type="password" name="password" class="form-control rounded-0" required />
+                        </div>
+                        <button type="submit" class="btn btn-vintage w-100 fw-bold">INGRESAR</button>
+                    </form>
+                </div>
+                <!-- Tab Registro -->
+                <div class="tab-pane fade" id="registro">
+                    @if(ViewBag.ErrorRegistro != null) { <div class="alert alert-danger small">@ViewBag.ErrorRegistro</div> }
+
+                    <!-- Guía de Telegram integrada -->
+                    <div class="alert alert-secondary p-3 mb-4 shadow-sm" style="border-radius: 8px;">
+                        <h6 class="fw-bold text-center mb-3 text-dark"><i class="fab fa-telegram text-primary me-2"></i>Pasos para vincular tu seguridad</h6>
+                        <div class="row g-2 text-center small">
+                            <div class="col-md-4">
+                                <div class="bg-white p-2 rounded h-100 border">
+                                    <i class="fab fa-telegram-plane text-primary fs-4 mb-1"></i>
+                                    <p class="fw-bold mb-1 text-dark">1. Obtén tu ID</p>
+                                    <span class="text-muted" style="font-size: 0.75rem;">Busca <strong>@@userinfobot</strong> en Telegram, envía /start y copia el ID numérico.</span>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="bg-white p-2 rounded h-100 border">
+                                    <i class="fas fa-robot text-success fs-4 mb-1"></i>
+                                    <p class="fw-bold mb-1 text-dark">2. Vincula tu ID</p>
+                                    <span class="text-muted" style="font-size: 0.75rem;">Pega tu ID numérico en el formulario de registro de abajo.</span>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="bg-white p-2 rounded h-100 border">
+                                    <i class="fas fa-key text-warning fs-4 mb-1"></i>
+                                    <p class="fw-bold mb-1 text-dark">3. Activa el Bot</p>
+                                    <span class="text-muted" style="font-size: 0.75rem;">Busca <strong>@@VintageLensAutenticationBot</strong> y presiona /start para permitir el envío de códigos.</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <form asp-action="Registro" method="post">
+                        <div class="mb-3">
+                            <input type="text" name="nombre" class="form-control rounded-0" placeholder="Nombre completo" required />
+                        </div>
+                        <div class="mb-3">
+                            <input type="email" name="email" class="form-control rounded-0" placeholder="Correo Electrónico" required />
+                        </div>
+                        <div class="mb-3">
+                            <input type="text" name="telegramChatId" class="form-control rounded-0" placeholder="Tu ID de Chat en Telegram (Numérico)" required />
+                        </div>
+                        <div class="mb-4">
+                            <input type="password" name="password" class="form-control rounded-0" placeholder="Crear Contraseña" required />
+                        </div>
+                        <button type="submit" class="btn btn-dark w-100 fw-bold rounded-0">REGISTRARSE</button>
+                    </form>
+                </div>

@@ -1,0 +1,82 @@
+@{
+    ViewData["Title"] = "Catálogo";
+    var misFavs = ViewBag.MisFavoritos as List<int> ?? new List<int>();
+    var categorias = ViewBag.Categorias as List<ECommerceFotografia.Models.Categoria> ?? new List<ECommerceFotografia.Models.Categoria>();
+}
+
+<!-- Encabezado corregido con margenes adequados -->
+<div class="d-flex justify-content-between align-items-end mb-4 pt-2">
+    <div>
+        <h1 class="fw-bold mb-1" style="font-size: 2.3rem;">Explora nuestro equipo</h1>
+        <p class="text-muted m-0 fs-6">Sistemas Mirrorless, ópticas prime y accesorios profesionales.</p>
+    </div>
+
+    <!-- Filtro de Categorías Estilizado (Dropdown alineado) -->
+    <div class="dropdown">
+        <button class="btn btn-vintage dropdown-toggle px-3 py-2 fw-bold" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+            Filtrar por Categoría
+        </button>
+        <ul class="dropdown-menu dropdown-menu-end shadow border-0 rounded-3 mt-1" style="max-height: 300px; overflow-y: auto;">
+            <li><a class="dropdown-item py-2" asp-action="Catalogo">Todas las categorías</a></li>
+            <li><hr class="dropdown-divider"></li>
+            @foreach (var cat in categorias)
+            {
+                <li><a class="dropdown-item py-2" asp-action="Catalogo" asp-route-categoriaId="@cat.Id">@cat.Nombre</a></li>
+            }
+        </ul>
+    </div>
+</div>
+
+<!-- Cuadrícula idéntica a Mis Favoritos (4 columnas perfectas) -->
+<div class="row row-cols-1 row-cols-sm-2 row-cols-md-4 g-4">
+    @foreach (var item in Model)
+    {
+        bool esFav = misFavs.Contains(item.Id);
+        string claseCorazon = esFav ? "fas fa-heart text-danger" : "far fa-heart text-muted";
+
+        <div class="col">
+            <div class="card h-100 border-0 shadow-sm position-relative" style="background-color: white; border-radius: 8px; overflow: hidden; transition: transform 0.2s;">
+                
+                <!-- Botón de Favorito Flotante -->
+                <button type="button" onclick="toggleFavCatalog(event, this, @item.Id)" class="position-absolute" style="top: 12px; right: 12px; z-index: 20; background: white; border-radius: 50%; padding: 6px 9px; border: none; box-shadow: 0 2px 5px rgba(0,0,0,0.15);">
+                    <i class="@claseCorazon fs-5"></i>
+                </button>
+
+                <!-- Tarjeta Clickeable hacia detalles -->
+                <a asp-action="Detalles" asp-route-id="@item.Id" class="text-decoration-none text-dark d-flex flex-column h-100">
+                    <div class="p-3 text-center bg-white">
+                        <img id="img-prod-@item.Id" src="@item.ImagenUrl" alt="@item.Nombre" class="img-fluid" style="height: 200px; object-fit: contain;" />
+                    </div>
+                    
+                    <div class="card-body text-center border-top d-flex flex-column pt-3">
+                        <h6 class="fw-bold mb-1" style="color: var(--dark-desaturated);">@item.Nombre</h6>
+                        <p class="small text-muted mb-2">@item.Categoria?.Nombre</p>
+                        <span class="fs-6 fw-bold mb-3" style="color: var(--accent-gold);">$@item.Precio.ToString("N2") MXN</span>
+
+                        <button type="button" onclick="agregarAlCarritoAnimado(event, @item.Id, 'img-prod-@item.Id')" class="btn btn-outline-dark rounded-0 mt-auto fw-bold btn-sm py-2" style="position: relative; z-index: 20;">
+                            <i class="fas fa-cart-plus me-1"></i> AL CARRITO
+                        </button>
+                    </div>
+                </a>
+            </div>
+        </div>
+    }
+</div>
+
+<script>
+    function toggleFavCatalog(event, btn, id) {
+        event.preventDefault();
+        event.stopPropagation();
+
+        fetch(`/Favoritos/ToggleFavorito?productoId=${id}`, { method: 'POST' })
+        .then(res => res.json())
+        .then(data => {
+            let icon = btn.querySelector('i');
+            if(data.status === 'added') {
+                icon.className = 'fas fa-heart text-danger fs-5';
+            } else {
+                icon.className = 'far fa-heart text-muted fs-5';
+            }
+        });
+    }
+</script>

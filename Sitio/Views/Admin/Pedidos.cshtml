@@ -1,0 +1,50 @@
+@model List<Pedido>
+@{
+    ViewData["Title"] = "Pedidos realizados";
+    string q = ViewBag.Q as string ?? "";
+    int pagina = (int)ViewBag.Pagina;
+    int totalPaginas = (int)ViewBag.TotalPaginas;
+}
+<h1 class="fw-bold mb-3">Pedidos realizados</h1>
+<partial name="_AdminNav" />
+
+<form method="get" asp-action="Pedidos" class="mb-3 d-flex gap-2" style="max-width: 520px;">
+    <input type="text" name="q" value="@q" class="form-control" placeholder="Buscar por folio, correo o nombre..." />
+    <button class="btn admin-btn px-3" type="submit"><i class="fas fa-search"></i></button>
+</form>
+
+<div class="table-responsive bg-white shadow-sm">
+    <table class="table table-hover align-middle mb-0">
+        <thead class="table-dark">
+            <tr><th>Folio</th><th>Fecha</th><th>Cliente</th><th>Método de pago</th><th>Estado</th><th class="text-end">Total</th><th></th></tr>
+        </thead>
+        <tbody>
+        @foreach (var p in Model)
+        {
+            <tr>
+                <td class="fw-bold">@p.Folio</td>
+                <td>@(p.Fecha.HasValue ? p.Fecha.Value.ToString("dd/MM/yyyy HH:mm") : "-")</td>
+                <td>@(p.Usuario?.Nombre ?? "-")<div class="small text-muted">@p.Usuario?.Email</div></td>
+                <td>@p.MetodoPago</td>
+                <td><span class="badge bg-secondary">@p.EstadoPago</span></td>
+                <td class="text-end fw-bold">$@p.Total.ToString("N2")</td>
+                <td class="text-end"><a asp-action="PedidoDetalle" asp-route-id="@p.Id" class="btn btn-sm btn-outline-dark rounded-0">Ver</a></td>
+            </tr>
+        }
+        </tbody>
+    </table>
+</div>
+
+<div class="d-flex justify-content-between align-items-center mt-3">
+    <span class="text-muted small">@ViewBag.TotalRegistros pedido(s) · página @pagina de @totalPaginas</span>
+    <div class="d-flex gap-2">
+        @if (pagina > 1)
+        {
+            <a asp-action="Pedidos" asp-route-q="@q" asp-route-pagina="@(pagina - 1)" class="btn btn-sm btn-outline-dark rounded-0">« Anterior</a>
+        }
+        @if (pagina < totalPaginas)
+        {
+            <a asp-action="Pedidos" asp-route-q="@q" asp-route-pagina="@(pagina + 1)" class="btn btn-sm btn-outline-dark rounded-0">Siguiente »</a>
+        }
+    </div>
+</div>

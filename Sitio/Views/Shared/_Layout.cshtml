@@ -1,0 +1,275 @@
+﻿@inject ECommerceFotografia.Models.InventarioContext DbContext
+@using System.Security.Claims
+@using Microsoft.EntityFrameworkCore
+
+@{
+    int totalCarrito = 0;
+    if (User.Identity != null && User.Identity.IsAuthenticated)
+    {
+        var email = User.FindFirstValue(ClaimTypes.Email);
+        var usuario = DbContext.Usuarios.FirstOrDefault(u => u.Email == email);
+        if (usuario != null)
+        {
+            totalCarrito = DbContext.CarritoItems
+                .Where(c => c.UsuarioId == usuario.Id)
+                .Sum(c => c.Cantidad);
+        }
+    }
+}
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - Vintage Lens</title>
+    <!-- Bootstrap 5 & FontAwesome -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --sepia-bg: #F4F0EC;
+            --warm-gray: #7A726A;
+            --dark-desaturated: #22201F;
+            --accent-gold: #C5A059;
+        }
+        body {
+            background-color: var(--sepia-bg);
+            color: var(--dark-desaturated);
+            font-family: 'Georgia', serif;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+        header.sticky-header {
+            position: sticky;
+            top: 0;
+            z-index: 1040;
+            background-color: var(--dark-desaturated);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+        }
+        .navbar-vintage .navbar-brand {
+            color: var(--sepia-bg);
+            font-size: 1.35rem;
+            letter-spacing: 1px;
+        }
+        .navbar-vintage .nav-link {
+            color: var(--sepia-bg);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-size: 0.92rem;
+            padding: 8px 12px !important;
+            transition: color 0.2s ease;
+        }
+        .navbar-vintage .nav-link:hover {
+            color: var(--accent-gold);
+        }
+        .search-input-lg {
+            border-radius: 4px 0 0 4px !important;
+            border: none;
+            padding: 10px 16px;
+            font-size: 0.95rem;
+        }
+        .search-btn-lg {
+            border-radius: 0 4px 4px 0 !important;
+            border: none;
+            background-color: white;
+            color: var(--warm-gray);
+            padding: 0 18px;
+        }
+        /* Botón Flotante para Regresar */
+        .btn-floating-back {
+            position: fixed;
+            bottom: 35px;
+            right: 35px;
+            width: 70px;
+            height: 70px;
+            z-index: 1050;
+            background-color: var(--dark-desaturated);
+            color: white;
+            border: 2px solid var(--accent-gold);
+            border-radius: 50%;
+            box-shadow: 0 6px 16px rgba(0,0,0,0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        .btn-floating-back:hover {
+            background-color: var(--accent-gold);
+            color: white;
+            transform: scale(1.12);
+        }
+        footer {
+            background-color: var(--dark-desaturated);
+            color: #A09890;
+        }
+    </style>
+</head>
+<body>
+    <header class="sticky-header">
+        <nav class="navbar navbar-expand-lg navbar-vintage py-3">
+            <div class="container-fluid px-4">
+                <!-- Marca Limpia sin Botón de Volver Integrado -->
+                <a class="navbar-brand fw-bold me-4" asp-controller="Home" asp-action="Index">
+                    <i class="fas fa-camera-retro me-2 text-warning"></i> VINTAGE LENS
+                </a>
+                
+                <button class="navbar-toggler border-0 text-white" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                    <i class="fas fa-bars fs-3"></i>
+                </button>
+
+                <div class="collapse navbar-collapse" id="navbarNav">
+                    <!-- Enlaces Izquierdos -->
+                    <ul class="navbar-nav me-auto fw-bold">
+                        <li class="nav-item"><a class="nav-link" asp-controller="Productos" asp-action="Catalogo">CATÁLOGO</a></li>
+                        <li class="nav-item"><a class="nav-link" asp-controller="Productos" asp-action="Catalogo" asp-route-categoriaId="3">LENTES</a></li>
+                        <li class="nav-item"><a class="nav-link" asp-controller="Productos" asp-action="Catalogo" asp-route-categoriaId="6">ILUMINACIÓN</a></li>
+                    </ul>
+
+                    <!-- Buscador -->
+                    <form class="d-flex mx-auto position-relative my-2 my-lg-0" style="width: 38%; min-width: 280px;" action="/Productos/Catalogo" method="get">
+                        <input class="form-control search-input-lg" type="search" name="busqueda" placeholder="Buscar productos, marcas..." id="buscadorAutocompletado" autocomplete="off">
+                        <button type="submit" class="btn search-btn-lg"><i class="fas fa-search fs-6"></i></button>
+                        <div id="sugerenciasBusqueda" class="position-absolute w-100 bg-white shadow-lg border-0" style="top: 110%; display: none; z-index: 1050; max-height: 350px; overflow-y: auto; border-radius: 8px;"></div>
+                    </form>
+
+                    <!-- Enlaces Derechos ÚNICOS -->
+                    <ul class="navbar-nav ms-auto fw-bold align-items-center">
+                        <li class="nav-item me-2">
+                            <a class="nav-link" asp-controller="Favoritos" asp-action="Index"><i class="fas fa-heart text-danger me-1"></i> FAVORITOS</a>
+                        </li>
+                        
+                        @if(User.Identity != null && User.Identity.IsAuthenticated)
+{
+                            var claimFoto = User.Claims.FirstOrDefault(c => c.Type == "FotoPerfil")?.Value;
+                            var foto = !string.IsNullOrWhiteSpace(claimFoto) ? claimFoto : "/images/default-avatar.png";
+
+                            <li class="nav-item dropdown me-2">
+                                <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" data-bs-toggle="dropdown">
+                                    <img src="@foto" 
+                                        onerror="this.onerror=null; this.src='/images/default-avatar.png';" 
+                                        class="rounded-circle me-2 border border-warning" 
+                                        style="width: 36px; height: 36px; object-fit: cover;" /> 
+                                    <span class="text-uppercase">@User.Identity.Name</span>
+                                </a>
+                                <ul class="dropdown-menu dropdown-menu-end rounded-3 shadow-lg border-0 mt-2">
+                                    @if (User.IsInRole("Admin"))
+                                    {
+                                        <li><a class="dropdown-item py-2 fw-bold" asp-controller="Admin" asp-action="Index"><i class="fas fa-user-shield me-2 text-warning"></i> Panel de Administración</a></li>
+                                    }
+                                    <li><a class="dropdown-item py-2" asp-controller="Auth" asp-action="Perfil"><i class="fas fa-id-card me-2 text-secondary"></i> Mi Perfil</a></li>
+                                    <li><hr class="dropdown-divider my-1"></li>
+                                    <li><a class="dropdown-item py-2 text-danger" asp-controller="Auth" asp-action="Logout"><i class="fas fa-sign-out-alt me-2"></i> Cerrar Sesión</a></li>
+                                </ul>
+                            </li>
+                        }
+                        else
+                        {
+                            <li class="nav-item me-2">
+                                <a class="nav-link" asp-controller="Auth" asp-action="Login"><i class="fas fa-user me-1"></i> LOGIN / SIGN UP</a>
+                            </li>
+                        }
+                        
+                        <li class="nav-item">
+                            <a class="nav-link d-flex align-items-center" id="cart-nav-icon" asp-controller="Carrito" asp-action="Index">
+                                <i class="fas fa-shopping-cart text-warning me-2 fs-5"></i> 
+                                <span>CARRITO</span>
+                                <span class="badge bg-warning text-dark rounded-pill ms-2 px-2" id="cart-count">
+                                    @totalCarrito
+                                </span>
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </nav>
+    </header>
+
+    <main role="main" class="container py-4 min-vh-100">
+        @RenderBody()
+    </main>
+
+    <!-- Botón Flotante para Regresar -->
+    <button type="button" onclick="history.back()" class="btn btn-floating-back" title="Regresar a la página anterior">
+        <i class="fas fa-arrow-left fs-3 text-warning"></i>
+    </button>
+
+    <footer class="py-4 text-center mt-auto border-top border-secondary border-opacity-25">
+        <div class="container">
+            <small>&copy; 2026 Vintage Lens - Equipos Fotográficos Profesionales. Todos los derechos reservados.</small>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+    document.getElementById('buscadorAutocompletado')?.addEventListener('input', function() {
+        let q = this.value;
+        let sugerencias = document.getElementById('sugerenciasBusqueda');
+        if(q.length < 2) { sugerencias.style.display = 'none'; return; }
+        
+        fetch(`/Productos/BuscarAjax?q=${q}`)
+        .then(res => res.json())
+        .then(data => {
+            sugerencias.innerHTML = '';
+            if(data.length > 0) {
+                data.forEach(item => {
+                    sugerencias.innerHTML += `
+                    <a href="/Productos/Detalles/${item.id}" class="d-flex align-items-center p-3 text-decoration-none text-dark border-bottom">
+                        <img src="${item.imagen}" style="width: 45px; height: 45px; object-fit: contain;" class="me-3">
+                        <div>
+                            <div class="fw-bold small">${item.nombre}</div>
+                            <div class="small fw-bold" style="color: var(--accent-gold);">$${item.precio.toFixed(2)} MXN</div>
+                        </div>
+                    </a>`;
+                });
+                sugerencias.style.display = 'block';
+            } else { sugerencias.style.display = 'none'; }
+        });
+    });
+
+    function agregarAlCarritoAnimado(event, productoId, imgElementId) {
+        event.preventDefault();
+        event.stopPropagation();
+        
+        fetch(`/Carrito/AgregarAjax?productoId=${productoId}`, { method: 'POST' })
+        .then(res => res.json())
+        .then(data => {
+            if(!data.success) { window.location.href = data.redirect; return; }
+            
+            let badge = document.getElementById('cart-count');
+            if(badge) {
+                let actual = parseInt(badge.innerText) || 0;
+                badge.innerText = actual + 1;
+            }
+
+            let cartIcon = document.getElementById('cart-nav-icon');
+            let img = document.getElementById(imgElementId);
+            if(img && cartIcon) {
+                let clone = img.cloneNode(true);
+                let rect = img.getBoundingClientRect();
+                clone.style.position = 'fixed'; 
+                clone.style.top = rect.top + 'px'; 
+                clone.style.left = rect.left + 'px';
+                clone.style.width = rect.width + 'px'; 
+                clone.style.height = rect.height + 'px';
+                clone.style.zIndex = '9999'; 
+                clone.style.transition = 'all 0.8s cubic-bezier(0.2, 1, 0.2, 1)'; 
+                clone.style.borderRadius = '50%';
+                document.body.appendChild(clone);
+                
+                setTimeout(() => {
+                    let cartRect = cartIcon.getBoundingClientRect();
+                    clone.style.top = cartRect.top + 'px'; 
+                    clone.style.left = cartRect.left + 'px';
+                    clone.style.width = '20px'; 
+                    clone.style.height = '20px'; 
+                    clone.style.opacity = '0.2';
+                }, 40);
+                setTimeout(() => clone.remove(), 850);
+            }
+        });
+    }
+    </script>
+</body>
+</html>

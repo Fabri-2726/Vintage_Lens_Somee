@@ -1,0 +1,187 @@
+@model ECommerceFotografia.Models.Usuario
+@{ 
+    ViewData["Title"] = "Mi Perfil"; 
+    var pedidos = ViewBag.Pedidos as List<ECommerceFotografia.Models.Pedido> ?? new List<ECommerceFotografia.Models.Pedido>();
+}
+
+<div class="container mt-4 mb-5 min-vh-100">
+    <h2 class="fw-bold mb-4" style="color: var(--dark-desaturated);">
+        <i class="fas fa-user-circle me-2"></i> Mi Cuenta
+    </h2>
+
+    @if (TempData["ExitoPerfil"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            <i class="fas fa-check-circle me-2"></i> @TempData["ExitoPerfil"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    <div class="card border-0 shadow-sm" style="border-radius: 8px; overflow: hidden;">
+        <div class="card-header bg-white border-bottom-0 p-0">
+            <ul class="nav nav-tabs nav-fill" id="perfilTabs" role="tablist">
+                <li class="nav-item">
+                    <button class="nav-link active fw-bold text-dark py-3 rounded-0" data-bs-toggle="tab" data-bs-target="#datos">
+                        <i class="fas fa-user-edit me-2"></i> DATOS PERSONALES
+                    </button>
+                </li>
+                <li class="nav-item">
+                    <button class="nav-link fw-bold text-dark py-3 rounded-0" data-bs-toggle="tab" data-bs-target="#direcciones">
+                        <i class="fas fa-map-marker-alt me-2"></i> MIS DIRECCIONES
+                    </button>
+                </li>
+                <li class="nav-item">
+                    <button class="nav-link fw-bold text-dark py-3 rounded-0" data-bs-toggle="tab" data-bs-target="#pedidos">
+                        <i class="fas fa-box-open me-2"></i> MIS PEDIDOS (@pedidos.Count)
+                    </button>
+                </li>
+                <li class="nav-item">
+                    <button class="nav-link fw-bold text-dark py-3 rounded-0" data-bs-toggle="tab" data-bs-target="#telegramGuia">
+                        <i class="fab fa-telegram me-2" style="color: #0088cc;"></i> GUÍA TELEGRAM BOT
+                    </button>
+                </li>
+            </ul>
+        </div>
+
+        <div class="card-body p-4 bg-white">
+            <div class="tab-content">
+                
+                <!-- TAB 1: DATOS PERSONALES -->
+                <div class="tab-pane fade show active" id="datos">
+                    <!-- ATENCIÓN AL ENCTYPE PARA PODER SUBIR FOTOS -->
+                    <form asp-action="EditarPerfil" method="post" enctype="multipart/form-data" class="row g-3 col-md-8 mx-auto py-3">
+                        <div class="col-12 text-center mb-3">
+                            <img src="@(Model.FotoPerfilUrl ?? "/images/default-avatar.png")" class="rounded-circle shadow-sm border" style="width: 120px; height: 120px; object-fit: cover; margin-bottom: 15px;" />
+                            <br>
+                            <label class="btn btn-sm btn-outline-dark rounded-0 fw-bold">
+                                Cambiar Foto <input type="file" name="fotoPerfil" accept="image/*" hidden />
+                            </label>
+                        </div>
+                        <!-- ... (Mantén tus campos Nombre, Email, Password y TelegramID aquí) ... -->
+                        <div class="col-12">
+                            <label class="form-label text-muted fw-bold small">Nombre Completo</label>
+                            <input type="text" name="nombre" class="form-control rounded-0" value="@Model.Nombre" required />
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label text-muted fw-bold small">Correo Electrónico</label>
+                            <input type="email" name="email" class="form-control rounded-0" value="@Model.Email" required />
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label text-muted fw-bold small">Contraseña</label>
+                            <input type="text" name="password" class="form-control rounded-0" value="@Model.PasswordHash" required />
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label text-muted fw-bold small">
+                                 ID de Chat en Telegram <i class="fas fa-info-circle text-primary" title="Obtenlo de @@userinfobot"></i>
+                            </label>
+                            <input type="text" name="telegramChatId" class="form-control rounded-0" value="@Model.TelegramChatId" required />
+                        </div>
+                        <div class="col-12 mt-4 text-end">
+                            <button type="submit" class="btn btn-vintage px-4 rounded-0 fw-bold">
+                                <i class="fas fa-lock me-2"></i> ACTUALIZAR DATOS (REQUIERE 2FA)
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- TAB 2: HISTORIAL DE PEDIDOS Y STATUS -->
+                <div class="tab-pane fade" id="pedidos">
+                    @if (!pedidos.Any())
+                    {
+                        <div class="text-center py-5">
+                            <i class="fas fa-shopping-bag fa-3x text-muted mb-3"></i>
+                            <p class="text-muted">Aún no has realizado ninguna compra.</p>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="table-responsive">
+                            <table class="table align-middle">
+                                <thead class="bg-light">
+                                    <tr>
+                                        <th>Folio</th>
+                                        <th>Fecha</th>
+                                        <th>Método de Pago</th>
+                                        <th>Total</th>
+                                        <th>Estatus</th>
+                                        <th>Comprobante</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var p in pedidos)
+                                    {
+                                        <tr>
+                                            <td class="fw-bold">@p.Folio</td>
+                                            <td>@(p.Fecha.HasValue ? p.Fecha.Value.ToLocalTime().ToString("dd/MM/yyyy HH:mm") : "-")</td>
+                                            <td>@p.MetodoPago</td>
+                                            <td class="fw-bold" style="color: var(--accent-gold);">$@p.Total.ToString("N2") MXN</td>
+                                            <td>
+                                                @if (p.EstadoPago == "Aprobado")
+                                                {
+                                                    <span class="badge bg-success rounded-0 p-2"><i class="fas fa-check me-1"></i> Aprobado</span>
+                                                }
+                                                else
+                                                {
+                                                    <span class="badge bg-warning text-dark rounded-0 p-2"><i class="fas fa-clock me-1"></i> @p.EstadoPago</span>
+                                                }
+                                            </td>
+                                            <td>
+                                                <a asp-controller="Carrito" asp-action="DescargarReciboPdf" asp-route-folio="@p.Folio" class="btn btn-sm btn-outline-danger rounded-0">
+                                                    <i class="fas fa-file-pdf"></i> PDF
+                                                </a>
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    }
+                </div>
+
+                <!-- TAB 3: GUÍA ILUSTRADA DE TELEGRAM -->
+                <div class="tab-pane fade" id="telegramGuia">
+                    <div class="row g-4 py-3">
+                        <div class="col-md-4">
+                            <div class="card h-100 border-0 bg-light p-3 text-center">
+                                <div class="fs-1 text-primary mb-2"><i class="fab fa-telegram-plane"></i></div>
+                                <h6 class="fw-bold">Paso 1: Obtén tu ID</h6>
+                                <p class="small text-muted mb-0">Busca el bot <strong>@@userinfobot</strong> en Telegram, envíale el mensaje <strong>/start</strong> y copia tu identificador numérico.</p>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="card h-100 border-0 bg-light p-3 text-center">
+                                <div class="fs-1 text-success mb-2"><i class="fas fa-robot"></i></div>
+                                <h6 class="fw-bold">Paso 2: Vincula la Tienda</h6>
+                                <p class="small text-muted mb-0">Guarda ese ID en tus datos personales y busca nuestro bot oficial <strong>@@VintageLensAutenticationBot</strong> en Telegram.</p>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="card h-100 border-0 bg-light p-3 text-center">
+                                <div class="fs-1 text-warning mb-2"><i class="fas fa-key"></i></div>
+                                <h6 class="fw-bold">Paso 3: Activa los códigos</h6>
+                                <p class="small text-muted mb-0">Presiona <strong>/start</strong> en el chat de <strong>@@VintageLensAutenticationBot</strong> para autorizarlo a enviarte tus códigos 2FA.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- TAB 4: DIRECCIONES -->
+                <div class="tab-pane fade" id="direcciones">
+                    <div class="col-md-8 mx-auto py-3">
+                        <h5 class="fw-bold mb-3">Agregar Nueva Dirección</h5>
+                        <form asp-action="AgregarDireccion" method="post" class="mb-5 bg-light p-4 rounded">
+                            <div class="row g-3">
+                                <div class="col-md-4">
+                                    <input type="text" name="alias" class="form-control rounded-0" placeholder="Ej: Casa, Oficina" required />
+                                </div>
+                                <div class="col-md-8">
+                                    <input type="text" name="direccionCompleta" class="form-control rounded-0" placeholder="Calle, Número, Colonia, C.P., Ciudad, Estado" required />
+                                </div>
+                                <div class="col-12 text-end">
+                                    <button type="submit" class="btn btn-vintage rounded-0 fw-bold">GUARDAR DIRECCIÓN</button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+                

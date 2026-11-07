@@ -1,0 +1,19 @@
+@{ ViewData["Title"] = "Autorizar Cambios"; }
+<div class="row justify-content-center mt-5 mb-5 min-vh-100">
+    <div class="col-md-5 text-center">
+        <div class="card shadow-sm border-0 p-4" style="border-radius: 8px;">
+            <i class="fas fa-shield-alt fa-3x mb-3 text-warning"></i>
+            <h4 class="fw-bold mb-3">Autorizar Modificación de Perfil</h4>
+            <p class="text-muted small mb-4">Por seguridad, ingresa el código enviado a tu Telegram para guardar los cambios en tu cuenta.</p>
+            
+            @if(ViewBag.Error != null) { 
+                <div class="alert alert-danger small mb-3">@ViewBag.Error</div> 
+            }
+            
+            <form asp-action="VerificarEdicion2FA" method="post">
+                <input type="text" name="codigo" class="form-control form-control-lg text-center fw-bold mb-4 rounded-0" placeholder="000000" maxlength="6" autocomplete="off" required>
+                <button type="submit" class="btn btn-dark w-100 fw-bold rounded-0">GUARDAR CAMBIOS</button>
+            </form>
+        </div>
+    </div>
+</div>

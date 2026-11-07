@@ -1,0 +1,98 @@
+@model IEnumerable<ECommerceFotografia.Models.CarritoItem>
+@{ ViewData["Title"] = "Mi Carrito"; }
+
+<div class="container mt-5 min-vh-100">
+    <h2 class="fw-bold mb-4" style="color: var(--dark-desaturated);">
+        <i class="fas fa-shopping-cart"></i> Tu Carrito de Compras
+    </h2>
+
+    @if (!Model.Any())
+    {
+        <div class="p-5 bg-light text-center" style="border-radius: 8px;">
+            <p class="text-muted fs-5">Tu carrito está vacío actualmente.</p>
+            <a asp-controller="Productos" asp-action="Catalogo" class="btn btn-vintage mt-3 px-4 py-2">Explorar Productos</a>
+        </div>
+    }
+    else
+    {
+        <table class="table">
+            <thead><tr><th>Producto</th><th>Precio</th><th>Cantidad</th><th>Subtotal</th><th></th></tr></thead>
+            <tbody>
+                @foreach (var item in Model)
+                {
+                    <tr>
+                        <td class="align-middle fw-bold">@item.Producto.Nombre</td>
+                        <td class="align-middle">$@item.Producto.Precio.ToString("N2")</td>
+                        <td class="align-middle">
+                            <!-- Controles de cantidad[cite: 41] -->
+                            <form asp-action="ActualizarCantidad" method="post" class="d-flex align-items-center">
+                                <input type="hidden" name="id" value="@item.Id" />
+                                <button type="submit" name="cantidad" value="@(item.Cantidad - 1)" class="btn btn-sm btn-outline-secondary rounded-0">-</button>
+                                <input type="text" value="@item.Cantidad" class="form-control form-control-sm text-center mx-1 rounded-0" style="width: 50px;" readonly />
+                                <button type="submit" name="cantidad" value="@(item.Cantidad + 1)" class="btn btn-sm btn-outline-secondary rounded-0">+</button>
+                            </form>
+                        </td>
+                        <td class="align-middle fw-bold text-success">$@((item.Cantidad * item.Producto.Precio).ToString("N2"))</td>
+                        <td class="align-middle text-end">
+                            <!-- Botón Eliminar[cite: 41] -->
+                            <form asp-action="ActualizarCantidad" method="post">
+                                <input type="hidden" name="id" value="@item.Id" />
+                                <button type="submit" name="cantidad" value="0" class="btn btn-sm btn-danger rounded-0"><i class="fas fa-trash"></i></button>
+                            </form>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+
+        <!-- Selector Único de Direcciones -->
+        <div class="mb-4 d-flex align-items-end gap-3 mt-4">
+            <div class="flex-grow-1">
+                <label class="fw-bold mb-2">Selecciona tu Dirección de Envío:</label>
+                <select name="direccionEnvioSeleccionada" class="form-select rounded-0" required form="formPago">
+                    <option value="">-- Elige una dirección guardada --</option>
+                    @if (ViewBag.Direcciones != null) {
+                        foreach(var dir in ViewBag.Direcciones) { <option value="@dir.DireccionCompleta">@dir.Alias - @dir.DireccionCompleta</option> }
+                    }
+                </select>
+            </div>
+            <button type="button" class="btn btn-outline-dark rounded-0 fw-bold" data-bs-toggle="modal" data-bs-target="#modalDireccion">
+                + NUEVA DIRECCIÓN
+            </button>
+        </div>
+
+        <!-- Modal Detallado -->
+        <div class="modal fade" id="modalDireccion" tabindex="-1">
+            <div class="modal-dialog">
+                <div class="modal-content rounded-0">
+                    <form asp-action="NuevaDireccionAjax" method="post">
+                        <div class="modal-header"><h5 class="modal-title fw-bold">Agregar Dirección</h5></div>
+                        <div class="modal-body">
+                            <input type="text" name="alias" class="form-control rounded-0 mb-3" placeholder="Alias (Ej: Casa, Trabajo)" required />
+                            <div class="row g-2 mb-3">
+                                <div class="col-8"><input type="text" name="calle" class="form-control rounded-0" placeholder="Calle" required /></div>
+                                <div class="col-4"><input type="text" name="numero" class="form-control rounded-0" placeholder="Número" required /></div>
+                            </div>
+                            <input type="text" name="colonia" class="form-control rounded-0 mb-3" placeholder="Colonia" required />
+                            <div class="row g-2 mb-3">
+                                <div class="col-4"><input type="text" name="cp" class="form-control rounded-0" placeholder="C.P." required /></div>
+                                <div class="col-8"><input type="text" name="ciudad" class="form-control rounded-0" placeholder="Ciudad" required /></div>
+                            </div>
+                            <input type="text" name="estado" class="form-control rounded-0" placeholder="Estado" required />
+                        </div>
+                        <div class="modal-footer">
+                            <button type="submit" class="btn btn-vintage rounded-0 w-100 fw-bold">GUARDAR Y USAR</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div class="mt-4 text-end bg-white p-4 shadow-sm" style="border-radius: 8px;">
+            <h3 class="fw-bold mb-3" style="color: var(--dark-desaturated);">
+                Total: $@Model.Sum(i => i.Cantidad * i.Producto.Precio).ToString("N2") MXN
+            </h3>
+            <a asp-action="Checkout" class="btn btn-vintage btn-lg px-5 rounded-0 fw-bold">PROCEDER AL PAGO</a>
+            </div>
+    }
+</div>

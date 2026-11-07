@@ -1,0 +1,59 @@
+@model ECommerceFotografia.Models.Pedido
+
+@{ 
+    ViewData["Title"] = "Comprobante de Orden"; 
+    // Garantiza que el folio se obtenga del Modelo o de ViewBag sin causar errores de referencia nula
+    string folioActual = Model?.Folio ?? ViewBag.Folio?.ToString() ?? "VL-00000000-000000";
+}
+
+<div class="container mt-5 min-vh-100 text-center">
+    <div class="row justify-content-center">
+        <div class="col-md-7">
+            <div class="card border-0 shadow-sm p-5" style="border-top: 5px solid green;">
+                
+                <i class="fas fa-check-circle fa-4x text-success mb-3"></i>
+                <h2 class="fw-bold">¡Orden Confirmada!</h2>
+                <p class="text-muted mt-3">Tu pago mediante <strong>@ViewBag.MetodoPago</strong> ha sido procesado correctamente.</p>
+                
+                <!-- Datos específicos por método de pago -->
+                @if (ViewBag.MetodoPago == "Transferencia SPEI")
+                {
+                    <div class="alert alert-info mt-3 text-start">
+                        <h6 class="fw-bold"><i class="fas fa-university me-2"></i>Instrucciones de Transferencia</h6>
+                        <p class="mb-0 small">@ViewBag.CuentaSpei</p>
+                    </div>
+                }
+                else if (ViewBag.MetodoPago == "Depósito en Efectivo")
+                {
+                    <div class="alert alert-warning mt-3">
+                        <h6 class="fw-bold mb-3"><i class="fas fa-store me-2"></i>Dicta este código o escanea en caja OXXO:</h6>
+                        <!-- Renderizado de código de barras real -->
+                        <img src="https://barcode.tec-it.com/barcode.ashx?data=@ViewBag.CodigoBarrasOxxo&code=Code128" alt="Código de Barras" class="img-fluid mb-2"/>
+                        <p class="fw-bold fs-5 tracking-widest mb-0">@ViewBag.CodigoBarrasOxxo</p>
+                    </div>
+                }
+                else
+                {
+                    <div class="alert alert-success mt-3">
+                        <h6 class="fw-bold mb-0"><i class="fas fa-credit-card me-2"></i>Cobro exitoso a la tarjeta a nombre de: @ViewBag.NombreTitular</h6>
+                    </div>
+                }
+
+                <div class="bg-light p-4 mt-4 mb-4 text-center" style="border-radius: 8px; border: 1px dashed #ccc;">
+                    <p class="mb-1 text-muted small text-uppercase">Folio Único de Seguimiento</p>
+                    <h3 class="fw-bold mb-0" style="color: var(--dark-desaturated);">@folioActual</h3>
+                </div>
+
+                <div class="d-grid gap-2 d-md-flex justify-content-md-center">
+                    <a asp-controller="Carrito" asp-action="DescargarReciboPdf" asp-route-folio="@folioActual" target="_blank" class="btn btn-dark rounded-0 fw-bold px-4 py-2">
+                        <i class="fas fa-file-pdf me-2 text-danger"></i> Descargar Recibo PDF
+                    </a>
+                    <a asp-controller="Productos" asp-action="Catalogo" class="btn btn-outline-dark btn-lg rounded-0 px-4">
+                        Seguir Comprando
+                    </a>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
